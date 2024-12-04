@@ -26,7 +26,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           project_id: "data-proc-ml"
-          workload_identity_provider: "projects/89944601945/locations/global/workloadIdentityPools/github-pool-sample/attribute/attribute.mapping"
+          workload_identity_provider: "projects/89944601945/locations/global/workloadIdentityPools/github-pool-sample/providers/github-pool-sample"
           service_account: "oidc-sa@data-proc-ml.iam.gserviceaccount.com"
           create_credentials_file: true
           cleanup_credentials: true
