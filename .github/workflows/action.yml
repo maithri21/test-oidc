@@ -1,0 +1,62 @@
+name: "Terraform Bucket Creation Pipeline"
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  terraform:
+    name: "Create GCS Bucket"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      # Step 1: Checkout code
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      # Step 2: Authenticate to Google Cloud using Workload Identity Federation
+      - name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: "data-proc-ml"
+          workload_identity_provider: "projects/89944601945/locations/global/workloadIdentityPools/github-pool-sample/attribute/attribute.mapping"
+          service_account: "oidc-sa@data-proc-ml.iam.gserviceaccount.com"
+          create_credentials_file: true
+          cleanup_credentials: true
+          debug_log: true
+
+      # Step 3: Set up Google Cloud SDK
+      - name: "Set up Cloud SDK"
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: "latest"
+
+      # Step 4: Install Terraform
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.4"
+
+      # Step 5: Initialize Terraform
+      - name: "Terraform Init"
+        run: terraform init
+
+      # Step 6: Validate Terraform configuration
+      - name: "Terraform Validate"
+        run: terraform validate
+
+      # Step 7: Plan Terraform deployment
+      - name: "Terraform Plan"
+        run: terraform plan
+
+      # Step 8: Apply Terraform configuration on push to main branch
+      - name: "Terraform Apply"
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: terraform apply -auto-approve
